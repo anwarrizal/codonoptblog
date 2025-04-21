@@ -39,9 +39,9 @@ Arguments:
 
 
 ### Generating DNA sequences
-
+```bash
 python main.py generate -p PROTEIN -f frequencies.csv [-n num_variants] [--method {preferred,weighted}]
-
+```
 
 Arguments:
 
@@ -55,13 +55,17 @@ Arguments:
 
 ## Examples
 1. Analyze codon usage from a FASTA file:
+```bash
 python main.py analyze -f sequences.fasta -o codon_frequencies.csv -v usage_heatmap.png
-
+```
 2. Generate a DNA sequence using preferred codons:
+```bash
 python main.py generate -p "MATGC" -f codon_frequencies.csv --method preferred
+```
 
 3. Generate multiple DNA sequence variants:
+```bash
 python main.py generate -p "MATGC" -f codon_frequencies.csv -n 5 --method weighted
-
+```
 
 
