@@ -69,3 +69,11 @@ python main.py generate -p "MATGC" -f codon_frequencies.csv -n 5 --method weight
 ```
 
 
+[Previous content remains the same...]
+
+3. Generate multiple DNA sequence variants:
+python main.py generate -p "MATGC" -f codon_frequencies.csv -n 5 --method weighted
+
+## License
+
+MIT License
