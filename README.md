@@ -16,16 +16,19 @@ A Python command-line tool for analyzing codon usage patterns in DNA sequences a
 # Clone the repository
 git clone [repository-url]
 cd [repository-name]
-
+```
 # Install required dependencies
-pip install -r requirements.txt  #
+```bash
+pip install -r requirements.txt 
+```
 
 ## Usage
 The tool provides two main commands: analyze and generate
 
 ### Analyzing Codon Usage
+```bash
 python main.py analyze -f input.fasta -o output.csv [-v heatmap.png]
-
+```
 Arguments:
 
 - -f, --fasta: Path to input FASTA file (required)
