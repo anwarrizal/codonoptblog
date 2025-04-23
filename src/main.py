@@ -13,7 +13,9 @@ Usage
 import argparse
 import pandas as pd
 from frequency_table import (
-    analyze_fasta,
+    analyze_codon_counts,
+    count_codons,
+    create_csv_and_visualization,
     protein_to_dna_preferred,
     protein_to_dna_weighted,
     generate_multiple_variants,
@@ -91,9 +93,11 @@ def main() -> None:
 
     if args.command == "analyze":
         try:
-            analyze_fasta(
-                args.fasta, csv_output=args.output, output_path=args.heatmap
-            )
+            codon_counts, aa_counts = count_codons(args.fasta)
+            create_csv_and_visualization(
+                df = analyze_codon_counts(codon_counts, aa_counts),
+                csv_output=args.output,
+                output_path=args.heatmap)
             print("Analysis complete.")
             # Save the frequency table for later use
             print(f"Frequency table saved to {args.output}")

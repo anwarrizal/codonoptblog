@@ -195,7 +195,7 @@ Example:
 
 
 def count_codons(
-    fasta_path: str, codon_table: dict[str, list[str]]
+    fasta_path: str, codon_table: dict[str, list[str]]=CODON_TABLE
 ) -> tuple[CounterDict, CounterDict]:
     """Count codons and amino acids in a FASTA file.
 
@@ -375,36 +375,80 @@ def generate_multiple_variants(
         for _ in range(num_variants)
     ]
 
+import pandas as pd
 
-def analyze_fasta(fasta_path: str, csv_output: str, output_path: str | None = None):
+def analyze_codon_counts(
+    codon_counts: CounterDict, 
+    aa_counts: CounterDict, 
+    codon_table: dict[str, list[str]]=CODON_TABLE
+) -> pd.DataFrame:
+    """Analyze codon usage from count data and return results as a DataFrame.
+    
+    Args:
+        codon_counts (CounterDict): Dictionary of codon counts
+        aa_counts (CounterDict): Dictionary of amino acid counts
+        codon_table (dict): Dictionary mapping amino acids to their codons
+    
+    Returns:
+        DataFrame with codon usage analysis
+    """
+    results = []
+    
+    for aa, codons in codon_table.items():
+        # Skip if no occurrences of this amino acid
+        # This should not happen in real data though.
+        if aa_counts[aa] == 0:
+            continue
+            
+        # Calculate RSCU, fraction, etc values
+        expected_frequency = 1 / len(codons)
+        max_count = max(codon_counts[codon] for codon in codons)
+        for codon in codons:
+            count = codon_counts[codon]
+            fraction = count / aa_counts[aa] if aa_counts[aa] > 0 else 0
+            rscu = ( fraction / expected_frequency 
+                       if expected_frequency > 0 else 0 )
+            
+            results.append({
+                'Codon': codon,
+                'Amino_Acid': aa,
+                'Preferred': count > 0 and count == max_count,
+                'Codon_Total_Count': count,
+                'Fraction': fraction,
+                'RSCU': rscu
+            })
+    
+    # Convert to DataFrame and sort
+    df = pd.DataFrame(results)
+    df = df.astype({
+        'Codon': 'string',
+        'Amino_Acid': 'string',
+        'Preferred': 'bool',
+        'Codon_Total_Count': 'int64',
+        'Fraction': 'float64',
+        'RSCU': 'float64'
+    })
+    df = df.sort_values(['Amino_Acid', 'Codon_Total_Count'], 
+              ascending=[True, False])
+  
+    return df
+
+def analyze_fasta(fasta_path: str, csv_output: str, output_path: str | None = None) -> None:
     """Analyze codon frequencies in FASTA file and create visualization."""
     # Count codons and amino acids
     codon_counts, aa_counts = count_codons(fasta_path, CODON_TABLE)
+    df = analyze_codon_counts(
+        codon_counts, aa_counts, CODON_TABLE
+    )
+    df.to_csv(csv_output, index=False, header=True)
+    
+    # Create visualization
+    if output_path:
+        visualize_rscu(df, output_path, CODON_TABLE)
+    return df
 
-    # Create DataFrame for analysis
-    data = []
-    for aa, codons in CODON_TABLE.items():
-        aa_total = aa_counts[aa]
-        for codon in codons:
-            codon_count = codon_counts[codon]
-            if aa_total > 0:
-                fraction = codon_count / aa_total
-                rscu = fraction * len(codons)
-            else:
-                fraction = 0
-                rscu = 0
 
-            data.append(
-                {
-                    "Amino_Acid": aa,
-                    "Codon": codon,
-                    "Codon_Total_Count": codon_count,
-                    "Fraction": fraction,
-                    "RSCU": rscu,
-                }
-            )
-
-    df = pd.DataFrame(data)
+def create_csv_and_visualization(df: pd.DataFrame, csv_output: str, output_path: str|None) -> None:
     df.to_csv(csv_output, index=False, header=True)
 
     # Create visualization
